@@ -11,13 +11,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class LoginTest {
-    //"D:\SeleniumTest\Executables\chromedriver.exe"
-    //"D:\SeleniumTest\src\test\resources\chromedriver.exe"
-    //"D:\SeleniumTest\src\test\resources\chromedriver.exe"
     @BeforeMethod
     public void beforeMethod(){
         System.out.println("Pre-condition");
-        System.setProperty("webdriver.chrome.driver", Utilities.getProjectPath() + "D:\\SeleniumTest\\src\\test\\resources\\chromedriver.exe");
         Constant.WEBDRIVER = new ChromeDriver();
         Constant.WEBDRIVER.manage().window().maximize();
     }
@@ -37,7 +33,7 @@ public class LoginTest {
         LoginPage loginPage = homePage.gotoLoginPage();
 
         String actualMsg = loginPage.login(Constant.USERNAME, Constant.PASSWORD).getWelcomeMessage();
-        String expectedMsg = "Welcome" + Constant.USERNAME;
+        String expectedMsg = "Welcome " + Constant.USERNAME;
 
         Assert.assertEquals(actualMsg, expectedMsg, "Welcome message is not displayed as expected");
     }

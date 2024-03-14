@@ -12,6 +12,7 @@ public class GeneralPage {
 
     //Elements: getter method for retrieving WebElements
     protected WebElement getTabLogin(){
+
         return Constant.WEBDRIVER.findElement(tabLogin);
     }
     protected WebElement getTabLogout(){
