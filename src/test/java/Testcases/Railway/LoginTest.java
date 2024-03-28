@@ -5,13 +5,20 @@ import Common.Constant.Constant;
 import PageObjects.Railway.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.time.Duration;
+import java.util.Random;
+
 public class LoginTest {
     @BeforeMethod
     public void beforeMethod(){
@@ -87,7 +94,7 @@ public class LoginTest {
         }
         BookTicketPage bookTicketPage = homePage.gotoBookTicketPage();
 
-        boolean isLoginPageDisplayed = false;
+        boolean isLoginPageDisplayed = true;
         try {
             WebElement usernameTextbox = Constant.WEBDRIVER.findElement(By.id("username"));
             WebElement passwordTextbox = Constant.WEBDRIVER.findElement(By.id("password"));
@@ -164,7 +171,7 @@ public class LoginTest {
 
         RegisterPage registerPage = homePage.gotoRegisterPage();
 
-        registerPage.getTxtEmail().sendKeys("tuyetnhiduong123@gmail.com");
+        registerPage.getTxtEmail().sendKeys("tuyetnhiduong120@gmail.com");
         registerPage.getTxtPassword().sendKeys("123Conmeo");
         registerPage.getTxtConfirmPassword().sendKeys("123Conmeo");
         registerPage.getTxtPidNumber().sendKeys("123456789");
@@ -260,6 +267,85 @@ public class LoginTest {
         String actualIdLengthMsg = registerPage.getLblIdLengthErrorMsg().getText();
         String expectedIdLengthMsg = "Invalid ID length.";
         Assert.assertEquals(actualSuccessMsg, expectedSuccessMsg, "Invalid ID length message is not displayed as expected");
+    }
+
+    @Test
+    public void TC12() {
+        System.out.println("TC12 - Errors display when password reset token is blank");
+        HomePage homePage = new HomePage();
+        homePage.open();
+
+        LoginPage loginPage = homePage.gotoLoginPage();
+        ForgotPasswordPage forgotPasswordPage = homePage.gotoForgotPasswordPage();
+
+        forgotPasswordPage.getTxtEmailAddress().sendKeys("duongtuyetnhi1608@gmail.com");
+        forgotPasswordPage.getBtnSendInstructors().click();
+
+        ChangePasswordPage changePasswordPage = homePage.gotoChangePasswordPage();
+        boolean managePasswordIsDisplay = true;
+        try {
+            WebElement changePasswordButton = Constant.WEBDRIVER.findElement(By.xpath("//input[@value='Change Password']"));
+            managePasswordIsDisplay = changePasswordButton.isDisplayed();
+        } catch (NoSuchElementException e) {
+            managePasswordIsDisplay = false;
+        }
+
+        Assert.assertTrue(managePasswordIsDisplay, "Could not reset password. Please correct the errors and try again.");
+
+        changePasswordPage.getTxtCurrentPassword().sendKeys(Constant.PASSWORD);
+        changePasswordPage.getTxtNewPassword().sendKeys("123Conmeo");
+        changePasswordPage.getTxtConfirmPassword().sendKeys("123Conmeo");
+        changePasswordPage.getBtnChangePassword().click();
+
+        String actualSuccessMsg = changePasswordPage.getLblChangePasswordErrorMsg().getText();
+        String expectedSuccessMsg = "Could not reset password. Please correct the errors and try again.";
+        Assert.assertEquals(actualSuccessMsg, expectedSuccessMsg, "Error message is not displayed as expected");
+    }
+
+    @Test
+    public void TC14() {
+        System.out.println("TC14 - User can book 1 ticket at a time");
+
+        // Bước 1: Mở trang web QA Railway
+        HomePage homePage = new HomePage();
+        homePage.open();
+
+        // Bước 2: Đăng nhập bằng tài khoản hợp lệ
+        LoginPage loginPage = homePage.gotoLoginPage();
+        loginPage.login(Constant.USERNAME, Constant.PASSWORD);
+
+        // Bước 3: Chuyển đến trang đặt vé
+        BookTicketPage bookTicketPage = homePage.gotoBookTicketPage();
+
+        // Bước 4: Chọn một "Depart date" từ danh sách
+        Random random = new Random();
+        int randomDateIndex = random.nextInt(28) + 3; // Random từ 3 đến 30
+        bookTicketPage.selectDepartDate(String.valueOf(randomDateIndex));
+
+        // Bước 5: Chọn "Sài Gòn" cho "Depart from" và "Nha Trang" cho "Arrive at"
+        bookTicketPage.selectDepartFrom("Sài Gòn");
+        bookTicketPage.selectArriveStation("Nha Trang");
+
+        // Bước 6: Chọn "Soft bed with air conditioner" cho "Seat type"
+        bookTicketPage.selectSeatType("Soft bed with air conditioner");
+
+        // Bước 7: Chọn "1" cho "Ticket amount"
+        bookTicketPage.selectTicketAmount("1");
+
+        // Bước 8: Nhấp vào nút "Book ticket"
+        bookTicketPage.clickBookTicketButton();
+
+        // Chờ cho đến khi trang mới được tải hoàn tất
+        Duration timeout = Duration.ofSeconds(10); // 10 giây
+        WebDriverWait wait = new WebDriverWait(Constant.WEBDRIVER, timeout);
+        wait.until(ExpectedConditions.urlContains("SuccessPage.cshtml"));
+
+        // Lấy thông báo thành công từ tiêu đề trang mới
+        String successMessage = Constant.WEBDRIVER.findElement(By.xpath("//h1")).getText();
+
+        // Kiểm tra xem thông báo thành công có hiển thị đúng không
+        String expectedSuccessMessage = "Ticket booked successfully!";
+        Assert.assertEquals(successMessage, expectedSuccessMessage, "Success message is not displayed as expected.");
     }
 
 
