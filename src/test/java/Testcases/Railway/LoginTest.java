@@ -306,44 +306,33 @@ public class LoginTest {
     public void TC14() {
         System.out.println("TC14 - User can book 1 ticket at a time");
 
-        // Bước 1: Mở trang web QA Railway
         HomePage homePage = new HomePage();
         homePage.open();
 
-        // Bước 2: Đăng nhập bằng tài khoản hợp lệ
         LoginPage loginPage = homePage.gotoLoginPage();
         loginPage.login(Constant.USERNAME, Constant.PASSWORD);
 
-        // Bước 3: Chuyển đến trang đặt vé
         BookTicketPage bookTicketPage = homePage.gotoBookTicketPage();
 
-        // Bước 4: Chọn một "Depart date" từ danh sách
         Random random = new Random();
         int randomDateIndex = random.nextInt(28) + 3; // Random từ 3 đến 30
         bookTicketPage.selectDepartDate(String.valueOf(randomDateIndex));
 
-        // Bước 5: Chọn "Sài Gòn" cho "Depart from" và "Nha Trang" cho "Arrive at"
         bookTicketPage.selectDepartFrom("Sài Gòn");
         bookTicketPage.selectArriveStation("Nha Trang");
 
-        // Bước 6: Chọn "Soft bed with air conditioner" cho "Seat type"
         bookTicketPage.selectSeatType("Soft bed with air conditioner");
 
-        // Bước 7: Chọn "1" cho "Ticket amount"
         bookTicketPage.selectTicketAmount("1");
 
-        // Bước 8: Nhấp vào nút "Book ticket"
         bookTicketPage.clickBookTicketButton();
 
         // Chờ cho đến khi trang mới được tải hoàn tất
-        Duration timeout = Duration.ofSeconds(10); // 10 giây
+        Duration timeout = Duration.ofSeconds(10);
         WebDriverWait wait = new WebDriverWait(Constant.WEBDRIVER, timeout);
         wait.until(ExpectedConditions.urlContains("SuccessPage.cshtml"));
-
-        // Lấy thông báo thành công từ tiêu đề trang mới
         String successMessage = Constant.WEBDRIVER.findElement(By.xpath("//h1")).getText();
 
-        // Kiểm tra xem thông báo thành công có hiển thị đúng không
         String expectedSuccessMessage = "Ticket booked successfully!";
         Assert.assertEquals(successMessage, expectedSuccessMessage, "Success message is not displayed as expected.");
     }
