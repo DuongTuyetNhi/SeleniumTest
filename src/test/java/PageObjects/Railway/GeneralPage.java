@@ -19,7 +19,11 @@ public class GeneralPage {
     //TC07
     public final By tabRegister = By.xpath("//div[@id='menu']//a[@href='/Account/Register.cshtml']");
     //TC12
-    public final By tabForgotPassword = By.xpath("//*[@id=\"content\"]/ul/li[3]/a");
+    public final By tabForgotPassword = By.xpath("//*[@id=\"content\"]/ul/li[3]/a[@href='/Page/TrainTimeListPage.cshtml']");
+
+    //TC15
+    public final By tabTrainTimetable = By.xpath("//*[@id=\"menu\"]/ul/li[4]/a");
+
 
     //Elements: getter method for retrieving WebElements
     protected WebElement getTabLogin(){
@@ -83,5 +87,13 @@ public class GeneralPage {
     public ForgotPasswordPage gotoForgotPasswordPage(){
         this.getTabForgotPassword().click();
         return new ForgotPasswordPage();
+    }
+    //TC15
+    protected WebElement getTabTrainTimetable(){
+        return Constant.WEBDRIVER.findElement(tabTrainTimetable);
+    }
+    public TrainTimetablePage gotoTrainTimetablePage(){
+        this.getTabTrainTimetable().click();
+        return new TrainTimetablePage();
     }
 }

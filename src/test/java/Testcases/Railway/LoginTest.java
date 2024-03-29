@@ -3,10 +3,7 @@ package Testcases.Railway;
 import Common.Common.Utilities;
 import Common.Constant.Constant;
 import PageObjects.Railway.*;
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -17,6 +14,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Random;
 
 public class LoginTest {
@@ -337,5 +335,57 @@ public class LoginTest {
         Assert.assertEquals(successMessage, expectedSuccessMessage, "Success message is not displayed as expected.");
     }
 
+    @Test
+    public void TC15() {
+        System.out.println("TC15 - User can open 'Book ticket' page by clicking on 'Book ticket' link in 'Train timetable' page");
 
+        HomePage homePage = new HomePage();
+        homePage.open();
+
+        LoginPage loginPage = homePage.gotoLoginPage();
+        loginPage.login(Constant.USERNAME, Constant.PASSWORD);
+
+        TrainTimetablePage trainTimetablePage = homePage.gotoTrainTimetablePage();
+
+        List<WebElement> rows = trainTimetablePage.getAllRows();
+        for (WebElement row : trainTimetablePage.getAllRows()) {
+            // Get columns of each row
+            List<WebElement> columns = row.findElements(By.tagName("td"));
+
+            // Check if the row has enough columns
+            if (columns.size() >= 7) {
+                String departStation = columns.get(1).getText();
+                String arriveStation = columns.get(2).getText();
+
+                // Check if the row corresponds to the desired route
+                if (departStation.equals("Huế") && arriveStation.equals("Sài Gòn")) {
+                    // Click on the "Book ticket" link using JavaScriptExecutor
+                    WebElement bookTicketLink = columns.get(6).findElement(By.tagName("a"));
+                    JavascriptExecutor executor = (JavascriptExecutor) Constant.WEBDRIVER;
+                    executor.executeScript("arguments[0].click();", bookTicketLink);
+                    // Wait for the "Book ticket" page to load
+                    Duration timeout = Duration.ofSeconds(10);
+                    WebDriverWait wait = new WebDriverWait(Constant.WEBDRIVER, timeout);
+                    wait.until(ExpectedConditions.urlContains("BookTicketPage.cshtml"));
+
+                    // Verify that "Depart from" and "Arrive at" values are correct
+                    WebElement departFromElement = Constant.WEBDRIVER.findElement(By.id("departFrom"));
+                    WebElement arriveAtElement = Constant.WEBDRIVER.findElement(By.id("arriveAt"));
+
+                    String departFromValue = departFromElement.getText();
+                    String arriveAtValue = arriveAtElement.getText();
+
+                    System.out.println("memeememmeem");
+
+                    // Add assertion to check if "Depart from" and "Arrive at" values are correct
+                    Assert.assertEquals(departFromValue, "Huế", "Incorrect 'Depart from' value on Book Ticket page");
+                    Assert.assertEquals(arriveAtValue, "Sài Gòn", "Incorrect 'Arrive at' value on Book Ticket page");
+
+                    // Add additional assertions if needed
+
+                    break;
+                }
+            }
+        }
+    }
 }
