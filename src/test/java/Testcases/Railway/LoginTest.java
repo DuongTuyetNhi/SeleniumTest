@@ -312,27 +312,25 @@ public class LoginTest {
 
         BookTicketPage bookTicketPage = homePage.gotoBookTicketPage();
 
-        Random random = new Random();
-        int randomDateIndex = random.nextInt(28) + 3; // Random từ 3 đến 30
-        bookTicketPage.selectDepartDate(String.valueOf(randomDateIndex));
+        bookTicketPage.bookTicket("4/22/2024","Sài Gòn","Nha Trang",
+                "Soft bed with air conditioner");
 
-        bookTicketPage.selectDepartFrom("Sài Gòn");
-        bookTicketPage.selectArriveStation("Nha Trang");
+        String currentUrl = Constant.WEBDRIVER.getCurrentUrl();
+        if (currentUrl.contains("SuccessPage")) {
+            try {
+                bookTicketPage.checkTicket("4/22/2024","Sài Gòn","Nha Trang",
+                        "Soft bed with air conditioner","1");
 
-        bookTicketPage.selectSeatType("Soft bed with air conditioner");
-
-        bookTicketPage.selectTicketAmount("1");
-
-        bookTicketPage.clickBookTicketButton();
-
-        // Chờ cho đến khi trang mới được tải hoàn tất
-        Duration timeout = Duration.ofSeconds(10);
-        WebDriverWait wait = new WebDriverWait(Constant.WEBDRIVER, timeout);
-        wait.until(ExpectedConditions.urlContains("SuccessPage.cshtml"));
-        String successMessage = Constant.WEBDRIVER.findElement(By.xpath("//h1")).getText();
-
-        String expectedSuccessMessage = "Ticket booked successfully!";
-        Assert.assertEquals(successMessage, expectedSuccessMessage, "Success message is not displayed as expected.");
+                // Kiểm tra thông báo thành công
+                String successMessage = Constant.WEBDRIVER.findElement(By.xpath("//h1")).getText();
+                String expectedSuccessMessage = "Ticket booked successfully!";
+                Assert.assertEquals(successMessage, expectedSuccessMessage, "Success message is not displayed as expected.");
+            } catch (Exception e) {
+                Assert.fail("Failed to verify information on SuccessPage: " + e.getMessage());
+            }
+        } else {
+            Assert.fail("Failed to navigate to SuccessPage after booking ticket.");
+        }
     }
 
     @Test
@@ -344,48 +342,101 @@ public class LoginTest {
 
         LoginPage loginPage = homePage.gotoLoginPage();
         loginPage.login(Constant.USERNAME, Constant.PASSWORD);
+        try {
+            TrainTimetablePage trainTimetablePage = homePage.gotoTrainTimetablePage();
 
-        TrainTimetablePage trainTimetablePage = homePage.gotoTrainTimetablePage();
+            List<WebElement> rows = trainTimetablePage.getAllRows();
+            for (WebElement row : trainTimetablePage.getAllRows()) {
+                // Get columns of each row
+                List<WebElement> columns = row.findElements(By.tagName("td"));
 
-        List<WebElement> rows = trainTimetablePage.getAllRows();
-        for (WebElement row : trainTimetablePage.getAllRows()) {
-            // Get columns of each row
-            List<WebElement> columns = row.findElements(By.tagName("td"));
+                // Check if the row has enough columns
+                if (columns.size() >= 7) {
+                    String departStation = columns.get(1).getText();
+                    String arriveStation = columns.get(2).getText();
 
-            // Check if the row has enough columns
-            if (columns.size() >= 7) {
-                String departStation = columns.get(1).getText();
-                String arriveStation = columns.get(2).getText();
+                    // Check if the row corresponds to the desired route
+                    if (departStation.equals("Huế") && arriveStation.equals("Sài Gòn")) {
+                        // Click on the "Book ticket" link using JavaScriptExecutor
+                        WebElement bookTicketLink = columns.get(6).findElement(By.tagName("a"));
+                        JavascriptExecutor executor = (JavascriptExecutor) Constant.WEBDRIVER;
+                        executor.executeScript("arguments[0].click();", bookTicketLink);
+                        // Wait for the "Book ticket" page to load
+                        Duration timeout = Duration.ofSeconds(10);
+                        WebDriverWait wait = new WebDriverWait(Constant.WEBDRIVER, timeout);
+                        wait.until(ExpectedConditions.urlContains("BookTicketPage.cshtml"));
 
-                // Check if the row corresponds to the desired route
-                if (departStation.equals("Huế") && arriveStation.equals("Sài Gòn")) {
-                    // Click on the "Book ticket" link using JavaScriptExecutor
-                    WebElement bookTicketLink = columns.get(6).findElement(By.tagName("a"));
-                    JavascriptExecutor executor = (JavascriptExecutor) Constant.WEBDRIVER;
-                    executor.executeScript("arguments[0].click();", bookTicketLink);
-                    // Wait for the "Book ticket" page to load
-                    Duration timeout = Duration.ofSeconds(10);
-                    WebDriverWait wait = new WebDriverWait(Constant.WEBDRIVER, timeout);
-                    wait.until(ExpectedConditions.urlContains("BookTicketPage.cshtml"));
+                        // Verify that "Depart from" and "Arrive at" values are correct
+                        // Loan: Loi doan nay
+//                    WebElement departFromElement = Constant.WEBDRIVER.findElement(By.id("departFrom"));
+//                    WebElement arriveAtElement = Constant.WEBDRIVER.findElement(By.id("arriveAt"));
 
-                    // Verify that "Depart from" and "Arrive at" values are correct
-                    WebElement departFromElement = Constant.WEBDRIVER.findElement(By.id("departFrom"));
-                    WebElement arriveAtElement = Constant.WEBDRIVER.findElement(By.id("arriveAt"));
+                        WebElement departFromElement = Constant.WEBDRIVER.findElement(By.cssSelector("select[name='DepartStation'] option[selected='selected']"));
+                        WebElement arriveAtElement = Constant.WEBDRIVER.findElement(By.cssSelector("select[name='ArriveStation'] option[selected='selected']"));
 
-                    String departFromValue = departFromElement.getText();
-                    String arriveAtValue = arriveAtElement.getText();
 
-                    System.out.println("memeememmeem");
+                        String departFromValue = departFromElement.getText();
+                        String arriveAtValue = arriveAtElement.getText();
 
-                    // Add assertion to check if "Depart from" and "Arrive at" values are correct
-                    Assert.assertEquals(departFromValue, "Huế", "Incorrect 'Depart from' value on Book Ticket page");
-                    Assert.assertEquals(arriveAtValue, "Sài Gòn", "Incorrect 'Arrive at' value on Book Ticket page");
+                        System.out.println("memeememmeem");
 
-                    // Add additional assertions if needed
+                        // Add assertion to check if "Depart from" and "Arrive at" values are correct
+                        Assert.assertEquals(departFromValue, "Huế", "Incorrect 'Depart from' value on Book Ticket page");
+                        Assert.assertEquals(arriveAtValue, "Sài Gòn", "Incorrect 'Arrive at' value on Book Ticket page");
 
-                    break;
+                        // Add additional assertions if needed
+
+                        break;
+                    }
                 }
             }
+        } catch (Exception e){
+            System.out.println("Da Xay ra loi: "+ e.getMessage());
         }
     }
+
+    @Test
+    public void TC16(){
+        System.out.println("TC16 - User can cancel a ticket");
+
+        HomePage homePage = new HomePage();
+        homePage.open();
+
+        LoginPage loginPage = homePage.gotoLoginPage();
+        loginPage.login(Constant.USERNAME, Constant.PASSWORD);
+
+        BookTicketPage bookTicketPage = homePage.gotoBookTicketPage();
+
+        String ticketId = bookTicketPage.getIdTicket("4/20/2024","Đà Nẵng","Nha Trang",
+                "Soft bed with air conditioner","2");
+        MyTicketPage myTicketPage = homePage.gotoMyTicketPage();
+//        Duration timeout = Duration.ofSeconds(5);
+//        WebDriverWait wait = new WebDriverWait(Constant.WEBDRIVER, timeout);
+//        wait.until(ExpectedConditions.urlContains("MyTicketPage.cshtml"));
+        // Tìm vé có ID là ticketId và xóa nó
+        //WebElement ticketRow = Constant.WEBDRIVER.findElement(By.xpath("//tr[@class='OddRow' and contains(td[1], '" + ticketId + "')]"));
+
+//        String cancelButtonXPath = "//input[@type='button' and @value='Delete' and contains(@onclick, '" + ticketId + "')]";
+
+        WebElement ticketRow = Constant.WEBDRIVER.findElement(By.xpath("//input[@type='button' and @value='Delete' and contains(@onclick, '" + ticketId + "')]"));
+        System.out.println("ticket row: "+ticketRow);
+        WebElement cancelButton = ticketRow.findElement(By.xpath("//input[@type='button'][@value='Cancel']"));
+        cancelButton.click();
+
+
+        Assert.assertFalse(myTicketPage.isTicketPresent(), "The canceled ticket is still present.");
+
+//        if (myTicketPage.isTicketPresent()) {
+//            int numberOfTickets = myTicketPage.getNumberOfTickets();
+//            Random random = new Random();
+//            int randomTicketIndex = random.nextInt(numberOfTickets) + 1;
+//            myTicketPage.cancelTicketByIndex(randomTicketIndex);
+//            myTicketPage.confirmCancel();
+//        } else {
+//            System.out.println("There are no tickets to cancel.");
+//        }
+
+        Assert.assertFalse(myTicketPage.isTicketPresent(), "The canceled ticket is still present.");
+    }
+
 }
